@@ -45,3 +45,33 @@ func SaveSnippet(s *model.Snippet) error {
 	enc.SetIndent("", " ")
 	return enc.Encode(s)
 }
+
+func LoadSnippets() ([]model.Snippet, error) {
+	dir, err := getSnippetsDir()
+	if err != nil {
+		return nil, err
+	}
+
+	var snippets []model.Snippet
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if filepath.Ext(file.Name()) == ".json" {
+			path := filepath.Join(dir, file.Name())
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return nil, err
+			}
+
+			var s model.Snippet
+			if err := json.Unmarshal(data, &s); err != nil {
+				return nil, err
+			}
+			snippets = append(snippets, s)
+		}
+	}
+	return snippets, nil
+}
