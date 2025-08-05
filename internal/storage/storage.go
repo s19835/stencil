@@ -75,3 +75,22 @@ func LoadSnippets() ([]model.Snippet, error) {
 	}
 	return snippets, nil
 }
+
+func GetSnippetByID(id string) (*model.Snippet, error) {
+	snippets, err := LoadSnippets()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range snippets {
+		// Allow short ID match
+		if len(id) <= 8 && s.ID[:len(id)] == id {
+			return &s, nil
+		}
+		// Or full ID match
+		if s.ID == id {
+			return &s, nil
+		}
+	}
+	return nil, fmt.Errorf("snippet with id '%s' not found", id)
+}
