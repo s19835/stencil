@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/alecthomas/chroma/v2/quick"
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/s19835/stencil/internal/model"
@@ -18,7 +20,11 @@ type modelTUI struct {
 	quitting bool
 	height   int
 	width    int
+	copied   bool
 }
+
+type copiedMsg struct{}
+type resetCopiedMsg struct{}
 
 func NewApp() *tea.Program {
 	snippets, _ := storage.LoadSnippets()
@@ -47,10 +53,23 @@ func (m modelTUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.cursor < len(m.snippets)-1 {
 				m.cursor++
 			}
+		case "c":
+			content := m.snippets[m.cursor].Content
+			err := clipboard.WriteAll(content)
+			if err == nil {
+				m.copied = true
+				return m, tea.Tick(time.Second, func(t time.Time) tea.Msg {
+					return resetCopiedMsg{}
+				})
+			} else {
+				fmt.Println("Failed to copy: ", err)
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+	case resetCopiedMsg:
+		m.copied = false
 	}
 
 	return m, nil
@@ -94,11 +113,19 @@ func (m modelTUI) View() string {
 		codeBuf.String(),
 	)
 
+	var toast string
+	if m.copied {
+		toastStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Bold(true).PaddingBottom(1)
+		toast = toastStyle.Render("Copied to Clipboard")
+	}
+
 	// Styles
 	columnStyle := lipgloss.NewStyle().Padding(1, 2)
 
 	leftCol := columnStyle.Width(leftWidth).Render(left.String())
 	righCol := columnStyle.Width(rightWidth).Render(preview)
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, leftCol, righCol)
+	layout := lipgloss.JoinHorizontal(lipgloss.Top, leftCol, righCol)
+
+	return lipgloss.JoinVertical(lipgloss.Left, layout, toast)
 }
