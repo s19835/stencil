@@ -31,7 +31,7 @@
 ```bash
 git clone https://github.com/s19835/stencil.git
 cd stencil
-go build -o stencil ./cmd/stencil
+go build -o stencil main.go
 ```
 
 Optionally, move the binary into your `$PATH`:
@@ -59,10 +59,11 @@ You'll be prompted for:
 ### View and copy snippets
 
 ```bash
-stencil list
+stencil
 ```
 
-Use arrow keys or `j`/`k` to navigate. Press:
+This will launch the TUI.
+Use arrow keys or `j`/`k` to navigate or up/down keys. Press:
 
 - `c` to copy content
 - `q` to quit
