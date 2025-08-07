@@ -29,7 +29,7 @@
 ### Clone and Build
 
 ```bash
-git clone https://github.com/yourname/stencil.git
+git clone https://github.com/s19835/stencil.git
 cd stencil
 go build -o stencil ./cmd/stencil
 ```
